@@ -1,0 +1,1691 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title>Title</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta http-equiv="cache-control" content="no-cache" />
+		<meta http-equiv="pragma" content="no-cache" />
+		<link rel="icon" href="favicon.ico" type="image/x-icon" />
+		<style>
+
+body {
+	margin: 0px;
+	visibility: visible;
+}
+
+.tile {
+	background: #000000;
+	border: 0;
+	margin: 0px;
+	padding: 0px;
+	position: absolute;
+	visibility: hidden;
+}
+
+.tile-number {
+	background: #cccccc;
+	color: #000000;
+	font-family: Helvetica, sans-serif;
+	font-weight: bold;
+	text-decoration: none;
+	text-align: center;
+
+	left: 1px;
+	padding: 0px 0px 0px 0px;
+	position: absolute;
+	top: 1px;
+}
+
+.tile-header {
+	background: #000000;
+	border: 0;
+	color: #ffffff;
+	font-family: Helvetica, sans-serif;
+	text-decoration: none;
+
+	position: absolute;
+	right: 50px;
+}
+
+.tile-time {
+	height: 14px;
+	position: absolute;
+	color: #ffffff;
+	font-family: Helvetica, sans-serif;
+	font-size: 11px;
+	text-align: right;
+	text-decoration: none;
+	right: 18px;
+	border-right: 3px solid #000000;
+ 	top: 1px;
+	width: 29px;
+	background: #000000;
+}
+
+.tile-flag {
+	height: 14px;
+	position: absolute;
+	right: 2px;
+	top: 3px;
+	width: 16px;
+}
+
+.tile-view {
+	padding: 1px;
+	position: absolute;
+}
+
+#sb {
+	position: absolute;
+	border: 0;
+
+}
+
+#sbbutton {
+	position: absolute;
+	border: 0;
+	visibility: hidden;
+}
+
+/*#sidepanel {
+	position: absolute;
+	border: 1px red solid;
+	visibility: hidden;
+	overflow: auto;
+	font-family: Helvetica, sans-serif;
+	font-size: 11px;
+	left: 846px;
+	top: 0px;
+	width: 0px;
+	height: 0px;
+}*/
+
+		</style>
+		<script type="text/javascript" src="http://domain.tld/js/jquery.min.js"></script>
+		<script type="text/javascript" src="http://domain.tld/js/jquery.ba-bbq.min.js"></script>
+		<script type="text/javascript" src="http://domain.tld/js/jquery.hotkeys.js"></script>
+		<script type="text/javascript" src="http://domain.tld/js/jquery.swfobject.1-1-1.min.js"></script>
+		<script type="text/javascript" src="http://domain.tld/js/jquery.periodicalupdater3.js"></script>
+		<script type="text/javascript" src="http://domain.tld/js/swfcreate.js"></script>
+		<script>
+
+// Mode 4
+// +-----------+
+// |           |
+// +     0     |
+// |           |
+// +---+---+---+
+// | 1 | 2 | 3 |
+// +---+---+---+
+
+// Mode 6
+// +-------+---+
+// |       | 1 |
+// +   0   +---+
+// |       | 2 |
+// +---+---+---+
+// | 3 | 4 | 5 |
+// +---+---+---+
+
+// Mode 9
+// +---+---+---+
+// | 0 | 1 | 2 |
+// +---+---+---+
+// | 3 | 4 | 5 |
+// +---+---+---+
+// | 6 | 7 | 8 |
+// +---+---+---+
+
+var CMD = new Array();
+CMD['NULL'] = 0;
+CMD['CLOSE'] = 10;
+CMD['CLOSEALL'] = 20;
+CMD['MAXIMIZE'] = 30;
+CMD['MINIMIZE'] = 40;
+CMD['MODE'] = 45;
+CMD['MOVE'] = 50;
+CMD['OPEN'] = 60;
+CMD['REFRESHPAGE'] = 70;
+CMD['RELOAD'] = 80;
+CMD['RELOADALL'] = 90;
+CMD['SBOFF'] = 92;
+CMD['SBON'] = 94;
+CMD['SBOPEN'] = 96;
+CMD['SBRELOAD'] = 98;
+CMD['SWAP'] = 100;
+CMD['VOL'] = 120;
+
+CMD['HIDEALL'] = 110;
+CMD['SHOWALL'] = 120;
+
+
+var URLTYPE = new Array();
+URLTYPE['ATOM'] = 5;
+URLTYPE['BING'] = 10;
+URLTYPE['CURRENT'] = 15;
+URLTYPE['DAILYMOTION'] = 20;
+URLTYPE['FORATV'] = 25;
+URLTYPE['FUNNYORDIE'] = 30;
+URLTYPE['GOOGLEVIDEO'] = 40;
+URLTYPE['JUSTINTVL'] = 51;
+URLTYPE['JUSTINTVR'] = 52;
+URLTYPE['LIVELEAK'] = 60;
+URLTYPE['METACAFE'] = 65;
+URLTYPE['MITOCW'] = 70;
+URLTYPE['MYSPACE'] = 80;
+URLTYPE['QIKL'] = 91;
+URLTYPE['QIKR'] = 92;
+URLTYPE['REVISION3'] = 95;
+URLTYPE['REVVER'] = 97;
+URLTYPE['USTREAML'] = 101;
+URLTYPE['USTREAMR'] = 102;
+URLTYPE['VIDDLER'] = 110;
+URLTYPE['VIMEO'] = 120;
+URLTYPE['YOUTUBE'] = 130;
+
+// neat hack to generate unique id
+// http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+var clientid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+});
+
+
+
+var pollcount = 0;
+
+var tilemode = -1;
+var tile = new Array();
+var tilestate = new Array();
+
+var title_update_timer;
+
+for (i = 0; i < 9; i++) {
+	tile[i] = i;
+	tilestate[i] = false;
+}
+
+var noautoplay = false;
+var nosb = false;
+param = $.deparam.querystring();
+if (param && param.hasOwnProperty('p')) {
+	paramarray = param['p'].split(' ');
+	if ($.inArray("noautoplay", paramarray) != -1)
+		noautoplay = true;
+	if ($.inArray("nosb", paramarray) != -1)
+		nosb = true;
+}
+
+function swap_tile(ti1, ti2) {
+	t = tile[ti1];
+	tile[ti1] = tile[ti2];
+	tile[ti2] = t;
+}
+
+
+var tileinfo = new Array();
+
+for (i = 0; i < 9; i++) {
+	reset_tileinfo(i);
+}
+
+function reset_tileinfo(ti) {
+	tileinfo[ti] = new Array();
+	tileinfo[ti]['alias'] = '';
+	tileinfo[ti]['ccode'] = '';
+	tileinfo[ti]['cid'] = 0;
+	tileinfo[ti]['imgurl'] = '';
+	tileinfo[ti]['param'] = '';
+	tileinfo[ti]['stime'] = 0;
+	tileinfo[ti]['timeoffset'] = -1440;
+	tileinfo[ti]['title'] = '';
+	tileinfo[ti]['url'] = '';
+	tileinfo[ti]['urltype'] = 0;
+	tileinfo[ti]['vid'] = '';
+}
+
+function set_tileinfo(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid) {
+	tileinfo[ti] = new Array();
+	tileinfo[ti]['alias'] = alias;
+	tileinfo[ti]['ccode'] = ccode;
+	tileinfo[ti]['cid'] = cid;
+	tileinfo[ti]['imgurl'] = imgurl;
+	tileinfo[ti]['param'] = param;
+	tileinfo[ti]['stime'] = stime;
+	tileinfo[ti]['timeoffset'] = timeoffset;
+	tileinfo[ti]['title'] = title;
+	tileinfo[ti]['url'] = url;
+	tileinfo[ti]['urltype'] = urltype;
+	tileinfo[ti]['vid'] = vid;
+}
+
+function swap_tileinfo(ti1, ti2) {
+	t = tileinfo[ti1];
+	tileinfo[ti1] = tileinfo[ti2];
+	tileinfo[ti2] = t;
+}
+
+function move_tileinfo(ti1, ti2) {
+	tileinfo[ti2] = tileinfo[ti1];
+	reset_tileinfo(ti1);
+}
+
+
+var basecid_local = 0;
+var basecid = 0;
+var lastcid = 0;
+
+var maxtileindex = -1; // maximized tile index.  -1 means no tile has been maximized
+
+
+var mleft = 0;
+var mtop = 0;
+
+
+// tile size for small tile
+
+var tns = 14;  // tile number size
+
+var thfs = 11;  // tile header font-size
+var thh = 14;  // tile header height
+var thl = 16;  // tile header left
+var thp = '1px 3px 0px 3px';  // tile header padding
+
+// var teh = 236;  // tile embed height
+// var tew = 280;  // tile embed width
+
+var teh = 238;  // tile embed height
+var tew = 283;  // tile embed width
+
+var tvt = thh + 1;  // tile view top
+var tvh = teh + 2;  // tile view height
+var tvw = tew + 2;  // tile view width
+
+// var th = tvh + thh + 1;  // tile height (253)
+// var tw = tvw;  // tile width (282)
+
+var th = tvh + thh + 1;  // tile height (255)
+var tw = tvw;  // tile width (285)
+
+
+// tile size for 2 x 2 tile
+
+var tns22 = 25;  // tile number size
+
+var thfs22 = 22;  // tile header font-size
+var thh22 = 55;  // tile header height
+var thl22 = 28;  // tile header left
+var thp22 = '1px 5px 0px 5px';  // tile header padding
+
+// var teh22 = 448;  // tile embed height
+// var tew22 = 562;  // tile embed width
+
+var teh22 = 452;  // tile embed height
+var tew22 = 568;  // tile embed width
+
+var tvt22 = thh22 + 1;  // tile view top
+var tvh22 = teh22 + 2;  // tile view height
+var tvw22 = tew22 + 2;  // tile view width
+
+// var th22 = tvh22 + thh22 + 1;  // tile height (506)
+// var tw22 = tvw22;  // tile width (564)
+
+var th22 = tvh22 + thh22 + 1;  // tile height (510)
+var tw22 = tvw22;  // tile width (570)
+
+
+// tile size for 3 x 2 tile
+
+var tns32 = 25;  // tile number size
+
+var thfs32 = 22;  // tile header font-size
+var thh32 = 28;  // tile header height
+var thl32 = 28;  // tile header left
+var thp32 = '1px 5px 0px 5px';  // tile header padding
+
+// var teh32 = 475;  // tile embed height
+// var tew32 = 844;  // tile embed width
+
+var teh32 = 479;  // tile embed height
+var tew32 = 853;  // tile embed width
+
+var tvt32 = thh32 + 1;  // tile view top
+var tvh32 = teh32 + 2;  // tile view height
+var tvw32 = tew32 + 2;  // tile view width
+
+// var th32 = tvh32 + thh32 + 1;  // tile height (506)
+// var tw32 = tvw32;  // tile width (846)
+
+var th32 = tvh32 + thh32 + 1;  // tile height (510)
+var tw32 = tvw32;  // tile width (855)
+
+
+// tile size for maximized tile equivalent to 3 x 3
+
+var tns33 = 25;  // tile number size
+
+var thfs33 = 22;  // tile header font-size
+var thh33 = 97;  // tile header height
+var thl33 = 28;  // tile header left
+var thp33 = '1px 5px 0px 5px';  // tile header padding
+
+// var teh33 = 659;  // tile embed height
+// var tew33 = 844;  // tile embed width
+
+var teh33 = 665;  // tile embed height
+var tew33 = 853;  // tile embed width
+
+var tvt33 = thh33 + 1;  // tile view top
+var tvh33 = teh33 + 2;  // tile view height
+var tvw33 = tew33 + 2;  // tile view width
+
+// var th33 = th * 3;  // tile height (759)
+// var tw33 = tw * 3;  // tile width (846)
+
+var th33 = th * 3;  // tile height (765)
+var tw33 = tw * 3;  // tile width (855)
+
+
+var sbh = 110; // speechbot tile height
+var sbw = 200; // speechbot tile width
+
+var f_sbon = false;
+var f_sbshow = false;
+
+var sb_alias = '';
+var sb_urltype = 0;
+var sb_url = '';
+var sb_vid = '';
+
+var sb_img_onplus = 'img/001_01.png';
+var sb_img_onminus = 'img/001_02.png';
+var sb_img_off = 'img/001_05.png';
+
+// function debug(s) {
+// 	$('#debug').append(s + '<br />');
+// }
+
+function calculate_offset(cid) {
+	return Math.floor(((get_local_cid() - cid) + (basecid - basecid_local)) / 100);
+}
+
+function cmd_close(ti) {
+	$('#t' + tile[ti]).css('visibility', 'hidden');
+	$('#tn' + tile[ti]).html('');
+	$('#th' + tile[ti]).html('');
+	$('#tv' + tile[ti]).html('');
+	reset_tileinfo(ti);
+	tilestate[ti] = false;
+}
+
+function cmd_closeall() {
+	if (tilemode == 4 || tilemode == 6) {
+		for (i = 0; i < tilemode; i++) {
+			tile[i] = i;
+			$('#t' + tile[i]).css("visibility", "hidden");
+			$('#tn' + tile[i]).html('');
+			$('#th' + tile[i]).html('');
+			$('#tv' + tile[i]).html('');
+			$('#t' + tile[i]).css("left", get_tile_x(tilemode, i) + "px").css("top", get_tile_y(tilemode, i) + "px");
+			$('#t' + tile[i]).css("width", get_tile_w(tilemode, i) + "px").css("height", get_tile_h(tilemode, i) + "px");
+			reset_tileinfo(i);
+			tilestate[ti] = false;
+		}
+		for (i = tilemode; i < 9; i++) {
+			tile[i] = i;
+			$('#t' + tile[i]).css("visibility", "hidden");
+			$('#tn' + tile[i]).html('');
+			$('#th' + tile[i]).html('');
+			$('#tv' + tile[i]).html('');
+			$('#t' + tile[i]).css("left", get_tile_x(9, i) + "px").css("top", get_tile_y(9, i) + "px");
+			$('#t' + tile[i]).css("width", get_tile_w(9, i) + "px").css("height", get_tile_h(9, i) + "px");
+			reset_tileinfo(i);
+			tilestate[ti] = false;
+		}
+	} else if (tilemode == 9) {
+		for (i = 0; i < 9; i++) {
+			tile[i] = i;
+			$('#t' + tile[i]).css("visibility", "hidden");
+			$('#tn' + tile[i]).html('');
+			$('#th' + tile[i]).html('');
+			$('#tv' + tile[i]).html('');
+			$('#t' + tile[i]).css("left", get_tile_x(tilemode, i) + "px").css("top", get_tile_y(tilemode, i) + "px");
+			$('#t' + tile[i]).css("width", get_tile_w(tilemode, i) + "px").css("height", get_tile_h(tilemode, i) + "px");
+			reset_tileinfo(i);
+			tilestate[ti] = false;
+		}
+	}
+}
+
+function cmd_hideall() {
+	for (i = 0; i < tilemode; i++) {
+		$('#t' + i).css("visibility", "hidden");
+	}
+}
+
+function cmd_maximize(ti1) {
+	if (maxtileindex != -1) {
+		// user is attempting to maximize alternate tile while one tile is already maximzed
+		if (maxtileindex == ti1)
+			return;
+		if (ti1 > 0)
+			$('#t' + tile[ti1]).css("left", get_tile_x(tilemode, 0) + "px").css("top", y = get_tile_y(tilemode, 0) + "px");
+		$('#t' + tile[ti1]).css("width", tw33 + "px").css("height", th33 + "px");
+		$('#tn' + tile[ti1]).css("width", tns33 + "px").css("height", tns33 + "px").css("font-size", tns33 + "px").css("line-height", tns33 + "px");
+		$('#th' + tile[ti1]).css("left", thl33 + "px").css("height", thh33 + "px").css("padding", thp33).css("font-size", thfs33 + "px");
+		$('#tv' + tile[ti1]).css("top", tvt33 + "px").css("width", tvw33 + "px").css("height", tvh33 + "px");
+		$('#te' + tile[ti1]).attr("width", tew33).attr("height", teh33);
+		$('#t' + tile[ti1]).css("visibility", "visible");
+
+		ti = maxtileindex;
+
+		// shrink the maximized tile
+		$('#t' + tile[ti]).css("width", get_tile_w(tilemode, ti) + "px").css("height", get_tile_h(tilemode, ti) + "px");
+		$('#tn' + tile[ti]).css("width", get_tilenumber_size(tilemode, ti) + "px").css("height", get_tilenumber_size(tilemode, ti) + "px").css("font-size", get_tilenumber_size(tilemode, ti) + "px").css("line-height", get_tilenumber_size(tilemode, ti) + "px");
+		$('#th' + tile[ti]).css("left", get_tileheader_left(tilemode, ti) + "px").css("height", get_tileheader_h(tilemode, ti) + "px").css("padding", get_tileheader_padding(tilemode, ti)).css("font-size", get_tileheader_fontsize(tilemode, ti) + "px");
+		$('#tv' + tile[ti]).css("top", get_tileview_top(tilemode, ti) + "px").css("width", get_tileview_w(tilemode, ti) + "px").css("height", get_tileview_h(tilemode, ti) + "px");
+		$('#te' + tile[ti]).attr("width", get_tileembed_w(tilemode, ti)).attr("height", get_tileembed_h(tilemode, ti));
+
+		// move shrunken tile to it's original location
+		$('#t' + tile[ti]).css("left", get_tile_x(tilemode, ti) + "px").css("top", get_tile_y(tilemode, ti) + "px");
+		$('#t' + tile[ti]).css("visibility", "hidden");
+
+		maxtileindex = ti1;
+		return;
+	}
+	for (i = 0; i < tilemode; i++ ) {
+		if (ti1 == i)
+			$('#t' + tile[i]).css("visibility", "visible");
+		else
+			$('#t' + tile[i]).css("visibility", "hidden");
+	}
+	// if tile being maximized is other than tile 0, move the tile to top left position
+	if (ti1 > 0)
+		$('#t' + tile[ti1]).css("left", get_tile_x(tilemode, 0) + "px").css("top", y = get_tile_y(tilemode, 0) + "px");
+	// resize the tile to 3 x 3
+	$('#t' + tile[ti1]).css("width", tw33 + "px").css("height", th33 + "px");
+	$('#tn' + tile[ti1]).css("width", tns33 + "px").css("height", tns33 + "px").css("font-size", tns33 + "px").css("line-height", tns33 + "px");
+	$('#th' + tile[ti1]).css("left", thl33 + "px").css("height", thh33 + "px").css("padding", thp33).css("font-size", thfs33 + "px");
+	$('#tv' + tile[ti1]).css("top", tvt33 + "px").css("width", tvw33 + "px").css("height", tvh33 + "px");
+	$('#te' + tile[ti1]).attr("width", tew33).attr("height", teh33);
+	maxtileindex = ti1;
+}
+
+function cmd_minimize() {
+	if (maxtileindex == -1)
+		return;
+
+	ti = maxtileindex;
+
+	// shrink the maximized tile
+	$('#t' + tile[ti]).css("width", get_tile_w(tilemode, ti) + "px").css("height", get_tile_h(tilemode, ti) + "px");
+	$('#tn' + tile[ti]).css("width", get_tilenumber_size(tilemode, ti) + "px").css("height", get_tilenumber_size(tilemode, ti) + "px").css("font-size", get_tilenumber_size(tilemode, ti) + "px").css("line-height", get_tilenumber_size(tilemode, ti) + "px");
+	$('#th' + tile[ti]).css("left", get_tileheader_left(tilemode, ti) + "px").css("height", get_tileheader_h(tilemode, ti) + "px").css("padding", get_tileheader_padding(tilemode, ti)).css("font-size", get_tileheader_fontsize(tilemode, ti) + "px");
+	$('#tv' + tile[ti]).css("top", get_tileview_top(tilemode, ti) + "px").css("width", get_tileview_w(tilemode, ti) + "px").css("height", get_tileview_h(tilemode, ti) + "px");
+	$('#te' + tile[ti]).attr("width", get_tileembed_w(tilemode, ti)).attr("height", get_tileembed_h(tilemode, ti));
+
+	// move shrunken tile to it's original location
+	$('#t' + tile[ti]).css("left", get_tile_x(tilemode, ti) + "px").css("top", get_tile_y(tilemode, ti) + "px");
+
+	for (i = 0; i < tilemode; i++)
+		if (tileinfo[i]['cid'] > 0)
+			$('#t' + tile[i]).css("visibility", "visible");
+		else
+			$('#t' + tile[i]).css("visibility", "hidden");
+	maxtileindex = -1;
+}
+
+function visually_move_tile(mode, ti) {
+	$('#t' + tile[ti]).animate({"left": get_tile_x(mode, ti) + "px", "top": get_tile_y(mode, ti) + "px"}, "fast");
+}
+
+function cmd_mode(mode) {
+	if (tilemode == -1) {
+		init_tile(mode);
+		tilemode = mode;
+		return;
+	}
+	if (tilemode == mode)
+		return;
+	if (tilemode == 4 && mode == 6) {
+		if (maxtileindex != -1) {
+			// user is trying to change mode when one of the tile is maximized
+			cmd_minimize();
+		}
+		$('#t' + tile[0]).css("width", get_tile_w(6, 0) + "px").css("height", get_tile_h(6, 0) + "px");
+		$('#tn' + tile[0]).css("width", get_tilenumber_size(6, 0) + "px").css("height", get_tilenumber_size(6, 0) + "px").css("font-size", get_tilenumber_size(6, 0) + "px").css("line-height", get_tilenumber_size(6, 0) + "px");
+		$('#th' + tile[0]).css("left", get_tileheader_left(6, 0) + "px").css("height", get_tileheader_h(6, 0) + "px").css("padding", get_tileheader_padding(6, 0)).css("font-size", get_tileheader_fontsize(6, 0) + "px");
+		$('#tv' + tile[0]).css("top", get_tileview_top(6, 0) + "px").css("width", get_tileview_w(6, 0) + "px").css("height", get_tileview_h(6, 0) + "px");
+		$('#te' + tile[0]).css("width", get_tileembed_w(6, 0) + "px").css("height", get_tileembed_h(6, 0) + "px");
+		$('#te' + tile[0]).attr("width", get_tileembed_w(6, 0)).attr("height", get_tileembed_h(6, 0));
+		visually_move_tile(6, 1);
+		visually_move_tile(6, 2);
+		visually_move_tile(6, 3);
+		$('#t' + tile[4]).css("visibility", "hidden");
+		$('#t' + tile[5]).css("visibility", "hidden");
+		visually_move_tile(6, 4);
+		visually_move_tile(6, 5);
+		tilemode = mode;
+	} else if (tilemode == 4 && mode == 9) {
+		if (maxtileindex != -1) {
+			// user is trying to change mode when one of the tile is maximized
+			cmd_minimize();
+		}
+		$('#t' + tile[0]).css("width", get_tile_w(9, 0) + "px").css("height", get_tile_h(9, 0) + "px");
+		$('#tn' + tile[0]).css("width", get_tilenumber_size(9, 0) + "px").css("height", get_tilenumber_size(9, 0) + "px").css("font-size", get_tilenumber_size(9, 0) + "px").css("line-height", get_tilenumber_size(9, 0) + "px");
+		$('#th' + tile[0]).css("left", get_tileheader_left(9, 0) + "px").css("height", get_tileheader_h(9, 0) + "px").css("padding", get_tileheader_padding(9, 0)).css("font-size", get_tileheader_fontsize(9, 0) + "px");
+		$('#tv' + tile[0]).css("top", get_tileview_top(9, 0) + "px").css("width", get_tileview_w(9, 0) + "px").css("height", get_tileview_h(9, 0) + "px");
+		$('#te' + tile[0]).css("width", get_tileembed_w(9, 0) + "px").css("height", get_tileembed_h(9, 0) + "px");
+		$('#te' + tile[0]).attr("width", get_tileembed_w(9, 0)).attr("height", get_tileembed_h(9, 0));
+		visually_move_tile(9, 1);
+		visually_move_tile(9, 2);
+		visually_move_tile(9, 3);
+		$('#t' + tile[4]).css("visibility", "hidden");
+		$('#t' + tile[5]).css("visibility", "hidden");
+		$('#t' + tile[6]).css("visibility", "hidden");
+		$('#t' + tile[7]).css("visibility", "hidden");
+		$('#t' + tile[8]).css("visibility", "hidden");
+		visually_move_tile(9, 4);
+		visually_move_tile(9, 5);
+		visually_move_tile(9, 6);
+		visually_move_tile(9, 7);
+		visually_move_tile(9, 8);
+		tilemode = mode;
+	} else if (tilemode == 6 && mode == 4) {
+		if (maxtileindex != -1) {
+			// user is trying to change mode when one of the tile is maximized
+			cmd_minimize();
+		}
+		cmd_close(5);
+		cmd_close(4);
+		visually_move_tile(4, 3);
+ 		visually_move_tile(4, 2);
+		visually_move_tile(4, 1);
+		$('#t' + tile[0]).css("width", get_tile_w(4, 0) + "px").css("height", get_tile_h(4, 0) + "px");
+		$('#tn' + tile[0]).css("width", get_tilenumber_size(4, 0) + "px").css("height", get_tilenumber_size(4, 0) + "px").css("font-size", get_tilenumber_size(4, 0) + "px").css("line-height", get_tilenumber_size(4, 0) + "px");
+		$('#th' + tile[0]).css("left", get_tileheader_left(4, 0) + "px").css("height", get_tileheader_h(4, 0) + "px").css("padding", get_tileheader_padding(4, 0)).css("font-size", get_tileheader_fontsize(4, 0) + "px");
+		$('#tv' + tile[0]).css("top", get_tileview_top(4, 0) + "px").css("width", get_tileview_w(4, 0) + "px").css("height", get_tileview_h(4, 0) + "px");
+		$('#te' + tile[0]).css("width", get_tileembed_w(4, 0) + "px").css("height", get_tileembed_h(4, 0) + "px");
+		$('#te' + tile[0]).attr("width", get_tileembed_w(4, 0)).attr("height", get_tileembed_h(4, 0));
+		tilemode = mode;
+	} else if (tilemode == 6 && mode == 9) {
+		if (maxtileindex != -1) {
+			// user is trying to change mode when one of the tile is maximized
+			cmd_minimize();
+		}
+		$('#t' + tile[0]).css("width", get_tile_w(9, 0) + "px").css("height", get_tile_h(9, 0) + "px");
+		$('#tn' + tile[0]).css("width", get_tilenumber_size(9, 0) + "px").css("height", get_tilenumber_size(9, 0) + "px").css("font-size", get_tilenumber_size(9, 0) + "px").css("line-height", get_tilenumber_size(9, 0) + "px");
+		$('#th' + tile[0]).css("left", get_tileheader_left(9, 0) + "px").css("height", get_tileheader_h(9, 0) + "px").css("padding", get_tileheader_padding(9, 0)).css("font-size", get_tileheader_fontsize(9, 0) + "px");
+		$('#tv' + tile[0]).css("top", get_tileview_top(9, 0) + "px").css("width", get_tileview_w(9, 0) + "px").css("height", get_tileview_h(9, 0) + "px");
+		$('#te' + tile[0]).css("width", get_tileembed_w(9, 0) + "px").css("height", get_tileembed_h(9, 0) + "px");
+		$('#te' + tile[0]).attr("width", get_tileembed_w(9, 0)).attr("height", get_tileembed_h(9, 0));
+		visually_move_tile(9, 1);
+		visually_move_tile(9, 2);
+		visually_move_tile(9, 3);
+		visually_move_tile(9, 4);
+		visually_move_tile(9, 5);
+		$('#t' + tile[6]).css("visibility", "hidden");
+		$('#t' + tile[7]).css("visibility", "hidden");
+		$('#t' + tile[8]).css("visibility", "hidden");
+		visually_move_tile(9, 6);
+		visually_move_tile(9, 7);
+		visually_move_tile(9, 8);
+		tilemode = mode;
+	} else if (tilemode == 9 && mode == 4) {
+		if (maxtileindex != -1) {
+			// user is trying to change mode when one of the tile is maximized
+			cmd_minimize();
+		}
+		cmd_close(8);
+		cmd_close(7);
+		cmd_close(6);
+		cmd_close(5);
+		cmd_close(4);
+		visually_move_tile(4, 3);
+ 		visually_move_tile(4, 2);
+		visually_move_tile(4, 1);
+		$('#t' + tile[0]).css("width", get_tile_w(4, 0) + "px").css("height", get_tile_h(4, 0) + "px");
+		$('#tn' + tile[0]).css("width", get_tilenumber_size(4, 0) + "px").css("height", get_tilenumber_size(4, 0) + "px").css("font-size", get_tilenumber_size(4, 0) + "px").css("line-height", get_tilenumber_size(4, 0) + "px");
+		$('#th' + tile[0]).css("left", get_tileheader_left(4, 0) + "px").css("height", get_tileheader_h(4, 0) + "px").css("padding", get_tileheader_padding(4, 0)).css("font-size", get_tileheader_fontsize(4, 0) + "px");
+		$('#tv' + tile[0]).css("top", get_tileview_top(4, 0) + "px").css("width", get_tileview_w(4, 0) + "px").css("height", get_tileview_h(4, 0) + "px");
+		$('#te' + tile[0]).css("width", get_tileembed_w(4, 0) + "px").css("height", get_tileembed_h(4, 0) + "px");
+		$('#te' + tile[0]).attr("width", get_tileembed_w(4, 0)).attr("height", get_tileembed_h(4, 0));
+		tilemode = mode;
+	} else if (tilemode == 9 && mode == 6) {
+		if (maxtileindex != -1) {
+			// user is trying to change mode when one of the tile is maximized
+			cmd_minimize();
+		}
+		cmd_close(8);
+		cmd_close(7);
+		cmd_close(6);
+		visually_move_tile(6, 5);
+		visually_move_tile(6, 4);
+		visually_move_tile(6, 3);
+ 		visually_move_tile(6, 2);
+		visually_move_tile(6, 1);
+		$('#t' + tile[0]).css("width", get_tile_w(6, 0) + "px").css("height", get_tile_h(6, 0) + "px");
+		$('#tn' + tile[0]).css("width", get_tilenumber_size(6, 0) + "px").css("height", get_tilenumber_size(6, 0) + "px").css("font-size", get_tilenumber_size(6, 0) + "px").css("line-height", get_tilenumber_size(6, 0) + "px");
+		$('#th' + tile[0]).css("left", get_tileheader_left(6, 0) + "px").css("height", get_tileheader_h(6, 0) + "px").css("padding", get_tileheader_padding(6, 0)).css("font-size", get_tileheader_fontsize(6, 0) + "px");
+		$('#tv' + tile[0]).css("top", get_tileview_top(6, 0) + "px").css("width", get_tileview_w(6, 0) + "px").css("height", get_tileview_h(6, 0) + "px");
+		$('#te' + tile[0]).css("width", get_tileembed_w(6, 0) + "px").css("height", get_tileembed_h(6, 0) + "px");
+		$('#te' + tile[0]).attr("width", get_tileembed_w(6, 0)).attr("height", get_tileembed_h(6, 0));
+		tilemode = mode;
+	}
+}
+
+function cmd_move(ti1, ti2) {
+	if (tilemode == 4 || tilemode == 6) {
+		if (ti1 == 0) {
+			// moving a large tile to a small space
+			move_tileinfo(ti1, ti2);
+
+			// shrink the source tile
+			$('#t' + tile[ti1]).css("width", get_tile_w(tilemode, ti2) + "px").css("height", get_tile_h(tilemode, ti2) + "px");
+			$('#tn' + tile[ti1]).css("width", get_tilenumber_size(tilemode, ti2) + "px").css("height", get_tilenumber_size(tilemode, ti2) + "px").css("font-size", get_tilenumber_size(tilemode, ti2) + "px").css("line-height", get_tilenumber_size(tilemode, ti2) + "px");
+			$('#th' + tile[ti1]).css("left", get_tileheader_left(tilemode, ti2) + "px").css("height", get_tileheader_h(tilemode, ti2) + "px").css("padding", get_tileheader_padding(tilemode, ti2)).css("font-size", get_tileheader_fontsize(tilemode, ti2) + "px");
+			$('#tv' + tile[ti1]).css("top", get_tileview_top(tilemode, ti2) + "px").css("width", get_tileview_w(tilemode, ti2) + "px").css("height", get_tileview_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).css("width", get_tileembed_w(tilemode, ti2) + "px").css("height", get_tileembed_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).attr("width", get_tileembed_w(tilemode, ti2)).attr("height", get_tileembed_h(tilemode, ti2));
+
+			// clear out destination tile
+			$('#t' + tile[ti2]).css("visibility", "hidden");
+			$('#tn' + tile[ti2]).html('');
+			$('#th' + tile[ti2]).html('');
+			$('#tv' + tile[ti2]).html('');
+
+			$('#tn' + tile[ti1]).html(ti2 + 1);
+
+			// move the tile
+			$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+			$('#t' + tile[ti2]).css("left", get_tile_x(tilemode, ti1) + "px").css("top", get_tile_y(tilemode, ti1) + "px");
+
+			$('#t' + tile[ti2]).css("width", get_tile_w(tilemode, ti1) + "px").css("height", get_tile_h(tilemode, ti1) + "px");
+			$('#tn' + tile[ti2]).css("width", get_tilenumber_size(tilemode, ti1) + "px").css("height", get_tilenumber_size(tilemode, ti1) + "px").css("font-size", get_tilenumber_size(tilemode, ti1) + "px").css("line-height", get_tilenumber_size(tilemode, ti1) + "px");
+			$('#th' + tile[ti2]).css("left", get_tileheader_left(tilemode, ti1) + "px").css("height", get_tileheader_h(tilemode, ti1) + "px").css("padding", get_tileheader_padding(tilemode, ti1)).css("font-size", get_tileheader_fontsize(tilemode, ti1) + "px");
+			$('#tv' + tile[ti2]).css("top", get_tileview_top(tilemode, ti1) + "px").css("width", get_tileview_w(tilemode, ti1) + "px").css("height", get_tileview_h(tilemode, ti1) + "px");
+
+			// there is really no move in tile[].  it's always swap
+			swap_tile(ti1, ti2);
+		} else if (ti2 == 0) {
+			move_tileinfo(ti1, ti2);
+
+			// clear out the destination tile
+			$('#t' + tile[ti2]).css("visibility", "hidden");
+			$('#tn' + tile[ti2]).html('');
+			$('#th' + tile[ti2]).html('');
+			$('#tv' + tile[ti2]).html('');
+
+			$('#tn' + tile[ti1]).html(ti2 + 1);
+
+			// move the tile
+			$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+
+			// resize the tile
+			$('#t' + tile[ti1]).css("width", get_tile_w(tilemode, ti2) + "px").css("height", get_tile_h(tilemode, ti2) + "px");
+			$('#tn' + tile[ti1]).css("width", get_tilenumber_size(tilemode, ti2) + "px").css("height", get_tilenumber_size(tilemode, ti2) + "px").css("font-size", get_tilenumber_size(tilemode, ti2) + "px").css("line-height", get_tilenumber_size(tilemode, ti2) + "px");
+			$('#th' + tile[ti1]).css("left", get_tileheader_left(tilemode, ti2) + "px").css("height", get_tileheader_h(tilemode, ti2) + "px").css("padding", get_tileheader_padding(tilemode, ti2)).css("font-size", get_tileheader_fontsize(tilemode, ti2) + "px");
+			$('#tv' + tile[ti1]).css("top", get_tileview_top(tilemode, ti2) + "px").css("width", get_tileview_w(tilemode, ti2) + "px").css("height", get_tileview_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).css("width", get_tileembed_w(tilemode, ti2) + "px").css("height", get_tileembed_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).attr("width", get_tileembed_w(tilemode, ti2)).attr("height", get_tileembed_h(tilemode, ti2));
+
+			$('#t' + tile[ti2]).css("left", get_tile_x(tilemode, ti1) + "px").css("top", get_tile_y(tilemode, ti1) + "px");
+
+			$('#t' + tile[ti2]).css("width", get_tile_w(tilemode, ti1) + "px").css("height", get_tile_h(tilemode, ti1) + "px");
+			$('#tn' + tile[ti2]).css("width", get_tilenumber_size(tilemode, ti1) + "px").css("height", get_tilenumber_size(tilemode, ti1) + "px").css("font-size", get_tilenumber_size(tilemode, ti1) + "px").css("line-height", get_tilenumber_size(tilemode, ti1) + "px");
+			$('#th' + tile[ti2]).css("left", get_tileheader_left(tilemode, ti1) + "px").css("height", get_tileheader_h(tilemode, ti1) + "px").css("padding", get_tileheader_padding(tilemode, ti1)).css("font-size", get_tileheader_fontsize(tilemode, ti1) + "px");
+			$('#tv' + tile[ti2]).css("top", get_tileview_top(tilemode, ti1) + "px").css("width", get_tileview_w(tilemode, ti1) + "px").css("height", get_tileview_h(tilemode, ti1) + "px");
+
+			// there is really no move in tile[].  it's always swap
+			swap_tile(ti1, ti2);
+		} else {
+			move_tileinfo(ti1, ti2);
+
+			// clear out the destination tile
+			$('#t' + tile[ti2]).css("visibility", "hidden");
+			$('#tn' + tile[ti2]).html('');
+			$('#th' + tile[ti2]).html('');
+			$('#tv' + tile[ti2]).html('');
+
+			$('#tn' + tile[ti1]).html(ti2 + 1);
+
+			// move the tile
+			$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+			$('#t' + tile[ti2]).css("left", get_tile_x(tilemode, ti1) + "px").css("top", get_tile_y(tilemode, ti1) + "px");
+
+			$('#t' + tile[ti2]).css("width", get_tile_w(tilemode, ti1) + "px").css("height", get_tile_h(tilemode, ti1) + "px");
+			$('#tn' + tile[ti2]).css("width", get_tilenumber_size(tilemode, ti1) + "px").css("height", get_tilenumber_size(tilemode, ti1) + "px").css("font-size", get_tilenumber_size(tilemode, ti1) + "px").css("line-height", get_tilenumber_size(tilemode, ti1) + "px");
+			$('#th' + tile[ti2]).css("left", get_tileheader_left(tilemode, ti1) + "px").css("height", get_tileheader_h(tilemode, ti1) + "px").css("padding", get_tileheader_padding(tilemode, ti1)).css("font-size", get_tileheader_fontsize(tilemode, ti1) + "px");
+			$('#tv' + tile[ti2]).css("top", get_tileview_top(tilemode, ti1) + "px").css("width", get_tileview_w(tilemode, ti1) + "px").css("height", get_tileview_h(tilemode, ti1) + "px");
+
+			// there is really no move in tile[].  it's always swap
+			swap_tile(ti1, ti2);
+		}
+	}
+	else if (tilemode == 9) {
+		move_tileinfo(ti1, ti2);
+
+		// clear out the destination tile
+		$('#t' + tile[ti2]).css("visibility", "hidden");
+		$('#tn' + tile[ti2]).html('');
+		$('#th' + tile[ti2]).html('');
+		$('#tv' + tile[ti2]).html('');
+
+		$('#tn' + tile[ti1]).html(ti2 + 1);
+
+		// move the tile
+		$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+		$('#t' + tile[ti2]).css("left", get_tile_x(tilemode, ti1) + "px").css("top", get_tile_y(tilemode, ti1) + "px");
+
+		$('#t' + tile[ti2]).css("width", get_tile_w(tilemode, ti1) + "px").css("height", get_tile_h(tilemode, ti1) + "px");
+		$('#tn' + tile[ti2]).css("width", get_tilenumber_size(tilemode, ti1) + "px").css("height", get_tilenumber_size(tilemode, ti1) + "px").css("font-size", get_tilenumber_size(tilemode, ti1) + "px").css("line-height", get_tilenumber_size(tilemode, ti1) + "px");
+		$('#th' + tile[ti2]).css("left", get_tileheader_left(tilemode, ti1) + "px").css("height", get_tileheader_h(tilemode, ti1) + "px").css("padding", get_tileheader_padding(tilemode, ti1)).css("font-size", get_tileheader_fontsize(tilemode, ti1) + "px");
+		$('#tv' + tile[ti2]).css("top", get_tileview_top(tilemode, ti1) + "px").css("width", get_tileview_w(tilemode, ti1) + "px").css("height", get_tileview_h(tilemode, ti1) + "px");
+
+		// there is really no move in tile[].  it's always swap
+		swap_tile(ti1, ti2);
+	}
+}
+
+function cmd_open(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid) {
+	id = 'te' + tile[ti];
+	apiid = 'tapi' + tile[ti];
+	w = get_tileembed_w(tilemode, ti);
+	h = get_tileembed_h(tilemode, ti);
+	st = stime + calculate_offset(cid);
+	swfobj = get_swfobj(urltype, id, apiid, vid, param, w, h, st);
+	if (swfobj) {
+		$('#tn' + tile[ti]).html(ti + 1);
+		if (title == '' || alias.toLowerCase() == title.toLowerCase())
+			headertext = alias;
+		else
+			if (alias == '')
+				headertext = title;
+			else
+				headertext = alias + ' : ' + title;
+		$('#th' + tile[ti]).html(headertext);
+		if (headertext != '') {
+			$('#th' + tile[ti]).css('cursor', 'pointer');
+			$('#th' + tile[ti]).unbind();
+			$('#th' + tile[ti]).click(function() { window.open(url, '_blank'); });
+		} else {
+			$('#th' + tile[ti]).css('cursor', 'default');
+			$('#th' + tile[ti]).unbind();
+		}
+		$('#tv' + tile[ti]).html(swfobj);
+		if (ccode != '') {
+			imgtag = "<img src=\"flag/" + ccode + ".png\" />";
+			$('#tf' + tile[ti]).html(imgtag);
+		} else
+			$('#tf' + tile[ti]).html('');
+		if (timeoffset != -1440)
+			$('#tt' + tile[ti]).html(get_timestring(timeoffset));
+		else
+			$('#tt' + tile[ti]).html('');
+		$('#t' + tile[ti]).css("width", get_tile_w(tilemode, ti) + "px").css("height", get_tile_h(tilemode, ti) + "px");
+		$('#tn' + tile[ti]).css("width", get_tilenumber_size(tilemode, ti) + "px").css("height", get_tilenumber_size(tilemode, ti) + "px").css("font-size", get_tilenumber_size(tilemode, ti) + "px").css("line-height", get_tilenumber_size(tilemode, ti) + "px");
+		$('#th' + tile[ti]).css("left", get_tileheader_left(tilemode, ti) + "px").css("height", get_tileheader_h(tilemode, ti) + "px").css("padding", get_tileheader_padding(tilemode, ti)).css("font-size", get_tileheader_fontsize(tilemode, ti) + "px");
+		$('#tv' + tile[ti]).css("top", get_tileview_top(tilemode, ti) + "px").css("width", get_tileview_w(tilemode, ti) + "px").css("height", get_tileview_h(tilemode, ti) + "px");
+		$('#te' + tile[ti]).attr("width", get_tileembed_w(tilemode, ti)).attr("height", get_tileembed_h(tilemode, ti));
+		$('#t' + tile[ti]).css('visibility', 'visible');
+	} else
+		alert('swf object creation failure');
+	set_tileinfo(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid);
+	tilestate[ti] = true;
+}
+
+function cmd_open_noautoplay(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid) {
+	$('#tn' + tile[ti]).html(ti + 1);
+	if (title == '' || alias.toLowerCase() == title.toLowerCase())
+		headertext = alias;
+	else
+		if (alias == '')
+			headertext = title;
+		else
+			headertext = alias + ' : ' + title;
+	$('#th' + tile[ti]).html(headertext);
+	if (headertext != '') {
+		$('#th' + tile[ti]).css('cursor', 'pointer');
+		$('#th' + tile[ti]).unbind();
+		$('#th' + tile[ti]).click(function() { window.open(url, '_blank'); });
+	} else {
+		$('#th' + tile[ti]).css('cursor', 'default');
+		$('#th' + tile[ti]).unbind();
+	}
+	$('#tv' + tile[ti]).html('<div id="te' + tile[ti] + '" class="tile-embed"></div>');
+	$('#te' + tile[ti]).css("width", get_tileembed_w(tilemode, ti) + "px").css("height", get_tileembed_h(tilemode, ti) + "px").css("background", '#333333');
+	if (ccode != '') {
+		imgtag = '<img src="flag/' + ccode + '.png" />';
+		$('#tf' + tile[ti]).html(imgtag);
+	} else
+		$('#tf' + tile[ti]).html('');
+	if (timeoffset != -1440)
+		$('#tt' + tile[ti]).html(get_timestring(timeoffset));
+	else
+		$('#tt' + tile[ti]).html('');
+	$('#t' + tile[ti]).css("width", get_tile_w(tilemode, ti) + "px").css("height", get_tile_h(tilemode, ti) + "px");
+	$('#tn' + tile[ti]).css("width", get_tilenumber_size(tilemode, ti) + "px").css("height", get_tilenumber_size(tilemode, ti) + "px").css("font-size", get_tilenumber_size(tilemode, ti) + "px").css("line-height", get_tilenumber_size(tilemode, ti) + "px");
+	$('#th' + tile[ti]).css("left", get_tileheader_left(tilemode, ti) + "px").css("height", get_tileheader_h(tilemode, ti) + "px").css("padding", get_tileheader_padding(tilemode, ti)).css("font-size", get_tileheader_fontsize(tilemode, ti) + "px");
+	$('#tv' + tile[ti]).css("top", get_tileview_top(tilemode, ti) + "px").css("width", get_tileview_w(tilemode, ti) + "px").css("height", get_tileview_h(tilemode, ti) + "px");
+	$('#te' + tile[ti]).attr("width", get_tileembed_w(tilemode, ti)).attr("height", get_tileembed_h(tilemode, ti));
+	$('#t' + tile[ti]).css('visibility', 'visible');
+	set_tileinfo(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid);
+	tilestate[ti] = false;
+}
+
+function cmd_refreshpage() {
+	window.location.reload();
+}
+
+function cmd_reload(ti) {
+	if (ti >= tilemode)	// you can't refresh a tile that doesn't exist on current mode
+		return;
+	if (tileinfo[ti]['cid'] == 0)	// you can't refresh a tile that is vacant
+		return;
+	if (noautoplay == true && tilestate[ti] == false)	// you can't refresh a tile that's currently disabled
+		return;
+	alias = tileinfo[ti]['alias'];
+	ccode = tileinfo[ti]['ccode'];
+	cid = tileinfo[ti]['cid'];
+	imgurl = tileinfo[ti]['imgurl'];
+	param = tileinfo[ti]['param'];
+	stime = tileinfo[ti]['stime'];
+	timeoffset = tileinfo[ti]['timeoffset'];
+	title = tileinfo[ti]['title'];
+	url = tileinfo[ti]['url'];
+	urltype = tileinfo[ti]['urltype'];
+	vid = tileinfo[ti]['vid'];
+
+	id = 'te' + tile[ti];
+	apiid = 'tapi' + tile[ti];
+	w = get_tileembed_w(tilemode, ti);
+	h = get_tileembed_h(tilemode, ti);
+	st = stime + calculate_offset(cid);
+	swfobj = get_swfobj(urltype, id, apiid, vid, param, w, h, st);
+	if (swfobj) {
+		$('#tn' + tile[ti]).html(ti + 1);
+		if (title == '' || alias.toLowerCase() == title.toLowerCase())
+			headertext = alias;
+		else
+			if (alias == '')
+				headertext = title;
+			else
+				headertext = alias + ' : ' + title;
+		$('#th' + tile[ti]).html(headertext);
+		if (headertext != '') {
+			$('#th' + tile[ti]).css('cursor', 'pointer');
+			$('#th' + tile[ti]).unbind();
+			$('#th' + tile[ti]).click(function() { window.open(url, '_blank'); });
+		} else {
+			$('#th' + tile[ti]).css('cursor', 'default');
+			$('#th' + tile[ti]).unbind();
+		}
+		$('#tv' + tile[ti]).html(swfobj);
+		if (ccode != '') {
+			imgtag = "<img src=\"flag/" + ccode + ".png\" />";
+			$('#tf' + tile[ti]).html(imgtag);
+		} else
+			$('#tf' + tile[ti]).html('');
+		if (timeoffset != -1440)
+			$('#tt' + tile[ti]).html(get_timestring(timeoffset));
+		else
+			$('#tt' + tile[ti]).html('');
+		$('#t' + tile[ti]).css('visibility', 'visible');
+	} else
+		alert('swf object creation failure');
+}
+
+function cmd_reloadall() {
+	for (i = 0; i < tilemode; i++)
+		cmd_reload(i);
+}
+
+function cmd_showall() {
+	for (i = 0; i < tilemode; i++)
+		$('#t' + tile[i]).css("visibility", "visible");
+}
+
+function cmd_swap(ti1, ti2) {
+	if (tilemode == 4 || tilemode == 6) {
+		if (ti1 == 0) {
+			swap_tileinfo(ti1, ti2);
+
+			// shrink the tile first
+			$('#t' + tile[ti1]).css("width", get_tile_w(tilemode, ti2) + "px").css("height", get_tile_h(tilemode, ti2) + "px");
+			$('#tn' + tile[ti1]).css("width", get_tilenumber_size(tilemode, ti2) + "px").css("height", get_tilenumber_size(tilemode, ti2) + "px").css("font-size", get_tilenumber_size(tilemode, ti2) + "px").css("line-height", get_tilenumber_size(tilemode, ti2) + "px");
+			$('#th' + tile[ti1]).css("left", get_tileheader_left(tilemode, ti2) + "px").css("height", get_tileheader_h(tilemode, ti2) + "px").css("padding", get_tileheader_padding(tilemode, ti2)).css("font-size", get_tileheader_fontsize(tilemode, ti2) + "px");
+			$('#tv' + tile[ti1]).css("top", get_tileview_top(tilemode, ti2) + "px").css("width", get_tileview_w(tilemode, ti2) + "px").css("height", get_tileview_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).css("width", get_tileembed_w(tilemode, ti2) + "px").css("height", get_tileembed_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).attr("width", get_tileembed_w(tilemode, ti2)).attr("height", get_tileembed_h(tilemode, ti2));
+
+			// move the tile
+			$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+			$('#t' + tile[ti2]).animate({"left": get_tile_x(tilemode, ti1) + "px", "top": get_tile_y(tilemode, ti1) + "px"}, "fast");
+
+			$('#tn' + tile[ti1]).html(ti2 + 1);
+			$('#tn' + tile[ti2]).html(ti1 + 1);
+
+			// expand the second tile in new position
+			$('#t' + tile[ti2]).css("width", get_tile_w(tilemode, ti1) + "px").css("height", get_tile_h(tilemode, ti1) + "px");
+			$('#tn' + tile[ti2]).css("width", get_tilenumber_size(tilemode, ti1) + "px").css("height", get_tilenumber_size(tilemode, ti1) + "px").css("font-size", get_tilenumber_size(tilemode, ti1) + "px").css("line-height", get_tilenumber_size(tilemode, ti1) + "px");
+			$('#th' + tile[ti2]).css("left", get_tileheader_left(tilemode, ti1) + "px").css("height", get_tileheader_h(tilemode, ti1) + "px").css("padding", get_tileheader_padding(tilemode, ti1)).css("font-size", get_tileheader_fontsize(tilemode, ti1) + "px");
+			$('#tv' + tile[ti2]).css("top", get_tileview_top(tilemode, ti1) + "px").css("width", get_tileview_w(tilemode, ti1) + "px").css("height", get_tileview_h(tilemode, ti1) + "px");
+			$('#te' + tile[ti2]).css("width", get_tileembed_w(tilemode, ti1) + "px").css("height", get_tileembed_h(tilemode, ti1) + "px");
+			$('#te' + tile[ti2]).attr("width", get_tileembed_w(tilemode, ti1)).attr("height", get_tileembed_h(tilemode, ti1));
+
+			swap_tile(ti1, ti2);
+		} else if (ti2 == 0) {
+			swap_tileinfo(ti1, ti2);
+
+			// shrink the second tile first
+			$('#t' + tile[ti2]).css("width", get_tile_w(tilemode, ti1) + "px").css("height", get_tile_h(tilemode, ti1) + "px");
+			$('#tn' + tile[ti2]).css("width", get_tilenumber_size(tilemode, ti1) + "px").css("height", get_tilenumber_size(tilemode, ti1) + "px").css("font-size", get_tilenumber_size(tilemode, ti1) + "px").css("line-height", get_tilenumber_size(tilemode, ti1) + "px");
+			$('#th' + tile[ti2]).css("left", get_tileheader_left(tilemode, ti1) + "px").css("height", get_tileheader_h(tilemode, ti1) + "px").css("padding", get_tileheader_padding(tilemode, ti1)).css("font-size", get_tileheader_fontsize(tilemode, ti1) + "px");
+			$('#tv' + tile[ti2]).css("top", get_tileview_top(tilemode, ti1) + "px").css("width", get_tileview_w(tilemode, ti1) + "px").css("height", get_tileview_h(tilemode, ti1) + "px");
+			$('#te' + tile[ti2]).css("width", get_tileembed_w(tilemode, ti1) + "px").css("height", get_tileembed_h(tilemode, ti1) + "px");
+			$('#te' + tile[ti2]).attr("width", get_tileembed_w(tilemode, ti1)).attr("height", get_tileembed_h(tilemode, ti1));
+
+			// move the tile
+			$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+			$('#t' + tile[ti2]).animate({"left": get_tile_x(tilemode, ti1) + "px", "top": get_tile_y(tilemode, ti1) + "px"}, "fast");
+
+			$('#tn' + tile[ti1]).html(ti2 + 1);
+			$('#tn' + tile[ti2]).html(ti1 + 1);
+
+			// expand the first tile in new position
+			$('#t' + tile[ti1]).css("width", get_tile_w(tilemode, ti2) + "px").css("height", get_tile_h(tilemode, ti2) + "px");
+			$('#tn' + tile[ti1]).css("width", get_tilenumber_size(tilemode, ti2) + "px").css("height", get_tilenumber_size(tilemode, ti2) + "px").css("font-size", get_tilenumber_size(tilemode, ti2) + "px").css("line-height", get_tilenumber_size(tilemode, ti2) + "px");
+			$('#th' + tile[ti1]).css("left", get_tileheader_left(tilemode, ti2) + "px").css("height", get_tileheader_h(tilemode, ti2) + "px").css("padding", get_tileheader_padding(tilemode, ti2)).css("font-size", get_tileheader_fontsize(tilemode, ti2) + "px");
+			$('#tv' + tile[ti1]).css("top", get_tileview_top(tilemode, ti2) + "px").css("width", get_tileview_w(tilemode, ti2) + "px").css("height", get_tileview_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).css("width", get_tileembed_w(tilemode, ti2) + "px").css("height", get_tileembed_h(tilemode, ti2) + "px");
+			$('#te' + tile[ti1]).attr("width", get_tileembed_w(tilemode, ti2)).attr("height", get_tileembed_h(tilemode, ti2));
+
+			swap_tile(ti1, ti2);
+		} else {
+			swap_tileinfo(ti1, ti2);
+
+			// move the tile
+			$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+			$('#t' + tile[ti2]).animate({"left": get_tile_x(tilemode, ti1) + "px", "top": get_tile_y(tilemode, ti1) + "px"}, "fast");
+
+			$('#tn' + tile[ti1]).html(ti2 + 1);
+			$('#tn' + tile[ti2]).html(ti1 + 1);
+
+			swap_tile(ti1, ti2);
+		}
+	}
+	else if (tilemode == 9) {
+
+		swap_tileinfo(ti1, ti2);
+
+		// move the tile
+		$('#t' + tile[ti1]).animate({"left": get_tile_x(tilemode, ti2) + "px", "top": get_tile_y(tilemode, ti2) + "px"}, "fast");
+		$('#t' + tile[ti2]).animate({"left": get_tile_x(tilemode, ti1) + "px", "top": get_tile_y(tilemode, ti1) + "px"}, "fast");
+
+		$('#tn' + tile[ti1]).html(ti2 + 1);
+		$('#tn' + tile[ti2]).html(ti1 + 1);
+
+		swap_tile(ti1, ti2);
+	}
+}
+
+function cmd_toggle(ti) {
+	if (ti >= tilemode)
+		return;
+	if (tileinfo[ti]['cid'] == 0)
+		return;
+	if (tilestate[ti] == true) {
+		$('#tv' + tile[ti]).html('<div id="te' + tile[ti] + '" class="tile-embed"></div>');
+		$('#te' + tile[ti]).css("width", get_tileembed_w(tilemode, ti) + "px").css("height", get_tileembed_h(tilemode, ti) + "px").css("background", '#333333');
+		tilestate[ti] = false;
+	} else {
+		id = 'te' + tile[ti];
+		apiid = 'tapi' + tile[ti];
+		w = get_tileembed_w(tilemode, ti);
+		h = get_tileembed_h(tilemode, ti);
+		st = stime + calculate_offset(cid);
+
+		swfobj = get_swfobj(urltype, id, apiid, vid, param, w, h, st);
+
+		alias = tileinfo[ti]['alias'];
+		ccode = tileinfo[ti]['ccode'];
+		cid = tileinfo[ti]['cid'];
+		imgurl = tileinfo[ti]['imgurl'];
+		param = tileinfo[ti]['param'];
+		stime = tileinfo[ti]['stime'];
+		timeoffset = tileinfo[ti]['timeoffset'];
+		title = tileinfo[ti]['title'];
+		url = tileinfo[ti]['url'];
+		urltype = tileinfo[ti]['urltype'];
+		vid = tileinfo[ti]['vid'];
+
+		id = 'te' + tile[ti];
+		apiid = 'tapi' + tile[ti];
+		w = get_tileembed_w(tilemode, ti);
+		h = get_tileembed_h(tilemode, ti);
+		st = stime + calculate_offset(cid);
+		swfobj = get_swfobj(urltype, id, apiid, vid, param, w, h, st);
+		if (swfobj) {
+			$('#t' + tile[ti] + 'n').html(ti + 1);
+			if (title == '' || alias.toLowerCase() == title.toLowerCase())
+				headertext = alias;
+			else
+				if (alias == '')
+					headertext = title;
+				else
+					headertext = alias + ' : ' + title;
+			if (headertext != '') {
+				$('#th' + tile[ti]).css('cursor', 'pointer');
+				$('#th' + tile[ti]).unbind();
+				$('#th' + tile[ti]).click(function() { window.open(url, '_blank'); });
+			} else {
+				$('#th' + tile[ti]).css('cursor', 'default');
+				$('#th' + tile[ti]).unbind();
+			}
+			$('#th' + tile[ti]).html(headertext);
+			$('#tv' + tile[ti]).html(swfobj);
+			$('#t' + tile[ti]).css('visibility', 'visible');
+		} else
+			alert('swf object creation failure');
+		tilestate[ti] = true;
+	}
+}
+
+function get_local_cid() {
+	d = new Date();
+	utcms = d.valueOf();
+	return Math.floor((utcms - 1288634000000) / 10);
+}
+
+function get_swfobj(urltype, id, apiid, vid, param, w, h, st) {
+	switch (urltype) {
+		case URLTYPE['ATOM']:
+			return swfcreate_atom(id, vid, w, h);
+			break;
+		case URLTYPE['BING']:
+			return swfcreate_bing(id, vid, w, h);
+			break;
+		case URLTYPE['CURRENT']:
+			return swfcreate_current(id, vid, w, h);
+			break;
+		case URLTYPE['DAILYMOTION']:
+			return swfcreate_dailymotion(id, vid, w, h, st);
+			break;
+		case URLTYPE['FORATV']:
+			return swfcreate_foratv(id, vid, w, h);
+			break;
+		case URLTYPE['FUNNYORDIE']:
+			return swfcreate_funnyordie(id, vid, w, h);
+			break;
+		case URLTYPE['GOOGLEVIDEO']:
+			return swfcreate_googlevideo(id, vid, w, h, st);
+			break;
+		case URLTYPE['JUSTINTVL']:
+			return swfcreate_justintv_live(id, vid, w, h);
+			break;
+		case URLTYPE['JUSTINTVR']:
+			return swfcreate_justintv_recorded(id, vid, w, h);
+			break;
+		case URLTYPE['LIVELEAK']:
+			return swfcreate_liveleak(id, vid, w, h);
+			break;
+		case URLTYPE['METACAFE']:
+			return swfcreate_metacafe(id, vid, w, h);
+			break;
+		case URLTYPE['MITOCW']:
+			return swfcreate_mitocw(id, apiid, vid, w, h, st);
+			break;
+		case URLTYPE['MYSPACE']:
+			return swfcreate_myspace(id, vid1, w, h, st);
+			break;
+		case URLTYPE['QIKL']:
+			return swfcreate_qik_live(id, vid, w, h);
+			break;
+		case URLTYPE['QIKR']:
+			return swfcreate_qik_recorded(id, vid, w, h);
+			break;
+		case URLTYPE['REVISION3']:
+			return swfcreate_revision3(id, vid, w, h, st);
+			break;
+		case URLTYPE['REVVER']:
+			return swfcreate_revver(id, vid, w, h);
+			break;
+		case URLTYPE['USTREAML']:
+			return swfcreate_ustream_live(id, vid, param, w, h);
+			break;
+		case URLTYPE['USTREAMR']:
+			return swfcreate_ustream_recorded(id, vid, param, w, h);
+			break;
+		case URLTYPE['VIDDLER']:
+			return swfcreate_viddler(id, vid, w, h);
+			break;
+		case URLTYPE['VIMEO']:
+			return swfcreate_vimeo(id, vid, w, h);
+			break;
+		case URLTYPE['YOUTUBE']:
+			return swfcreate_youtube(id, apiid, vid, w, h, st);
+			break;
+	}
+}
+
+function get_tile_h(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return th32;
+	if (mode == 6 && ti == 0)
+		return th22;
+	return th;
+}
+
+function get_tile_w(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return tw32;
+	if (mode == 6 && ti == 0)
+		return tw22;
+	return tw;
+}
+
+function get_tile_x(mode, ti) {
+	if (mode == 4) {
+		switch (ti) {
+			case 0:
+			case 1:
+				return mleft;
+			case 2:
+				return mleft + tw;
+			case 3:
+				return mleft + (2 * tw);
+		}
+	} else if (mode == 6) {
+		switch (ti) {
+			case 0:
+			case 3:
+				return mleft;
+			case 1:
+			case 2:
+			case 5:
+				return mleft + (2 * tw);
+			case 4:
+				return mleft + tw;
+		}
+	} else if (mode == 9)
+		return (ti % 3) * tw + mleft;
+}
+
+function get_tile_y(mode, ti) {
+	if (mode == 4) {
+		switch (ti) {
+			case 0:
+				return mtop;
+			case 1:
+			case 2:
+			case 3:
+				return mtop + (2 * th);
+		}
+	} else if (mode == 6) {
+		switch (ti) {
+			case 0:
+			case 1:
+				return mtop;
+			case 2:
+				return mtop + th;
+			case 3:
+			case 4:
+			case 5:
+				return mtop + (2 * th);
+		}
+	} else if (mode == 9)
+		return Math.floor(ti / 3) * th + mtop;
+}
+
+function get_tileembed_h(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return teh32;
+	if (mode == 6 && ti == 0)
+		return teh22;
+	return teh;
+}
+
+function get_tileembed_w(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return tew32;
+	if (mode == 6 && ti == 0)
+		return tew22;
+	return tew;
+}
+
+function get_tilenumber_size(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return tns32;
+	if (mode == 6 && ti == 0)
+		return tns22;
+	return tns;
+}
+
+function get_tileheader_h(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return thh32;
+	if (mode == 6 && ti == 0)
+		return thh22;
+	return thh;
+}
+
+function get_tileheader_left(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return thl32;
+	if (mode == 6 && ti == 0)
+		return thl22;
+	return thl;
+}
+
+function get_tileheader_fontsize(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return thfs32;
+	if (mode == 6 && ti == 0)
+		return thfs22;
+	return thfs;
+}
+
+function get_tileheader_padding(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return thp32;
+	if (mode == 6 && ti == 0)
+		return thp22;
+	return thp;
+}
+
+function get_tileview_h(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return tvh32;
+	if (mode == 6 && ti == 0)
+		return tvh22;
+	return tvh;
+}
+
+function get_tileview_w(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return tvw32;
+	if (mode == 6 && ti == 0)
+		return tvw22;
+	return tvw;
+}
+
+function get_tileview_top(mode, ti) {
+	if (mode == 4 && ti == 0)
+		return tvt32;
+	if (mode == 6 && ti == 0)
+		return tvt22;
+	return tvt;
+}
+
+function init_tile(mode) {
+	for (i = 0; i < mode; i++) {
+		$('#t' + i).css("left", get_tile_x(mode, i) + "px").css("top", get_tile_y(mode, i) + "px");
+		$('#t' + i).css("width", get_tile_w(mode, i) + "px").css("height", get_tile_h(mode, i) + "px");
+		$('#tn' + i).css("width", get_tilenumber_size(mode, i) + "px").css("height", get_tilenumber_size(mode, i) + "px").css("font-size", get_tilenumber_size(mode, i) + "px").css("line-height", get_tilenumber_size(mode, i) + "px");
+		$('#th' + i).css("left", get_tileheader_left(mode, i) + "px").css("height", get_tileheader_h(mode, i) + "px").css("padding", get_tileheader_padding(mode, i)).css("font-size", get_tileheader_fontsize(mode, i) + "px");
+		$('#tv' + i).css("top", get_tileview_top(mode, i) + "px").css("width", get_tileview_w(mode, i) + "px").css("height", get_tileview_h(mode, i) + "px");
+	}
+
+	if (nosb == false) {
+		$('#sb').css("left", (mleft + (tw * 3) - sbw) + "px").css("top", (mtop + (th * 3) - sbh) + "px");
+		$('#sb').css("width", sbw + "px").css("height", "0px");
+		$('#sb').css("visibility", "hidden");
+
+		$('#sbbutton').css("left", (mleft + (tw * 3) + 8) + "px").css("top", (mtop + (th * 3) - 22) + "px");
+		$('#sbbutton').css("width", "24px").css("height", "24px");
+		$('#sbbutton').css("visibility", "visible");
+
+		if (f_sbon) {
+			if (f_sbshow)
+				$('#sbbutton').attr('src', sb_img_onminus);
+			else
+				$('#sbbutton').attr('src', sb_img_onplus);
+		} else {
+			$('#sbbutton').attr('src', sb_img_off);
+		}
+
+		$('#sbbutton').click(function(event) {
+			if (f_sbon == false) {
+				return;
+			}
+			if (f_sbshow) {
+				$('#sbbutton').attr('src', sb_img_onplus);
+				sb_hide();
+			} else {
+				$('#sbbutton').attr('src', sb_img_onminus);
+				sb_show();
+			}
+		});
+	}
+}
+
+function sb_off() {
+	if (f_sbon == false)
+		return;
+	$('#sb').html('');
+	$('#sbbutton').attr('src', sb_img_off);
+	sb_hide();
+	f_sbon = false;
+}
+
+function sb_on() {
+	if (f_sbon == true)
+		return;
+	switch (sb_urltype) {
+		case URLTYPE['JUSTINTVL']:
+			$('#sb').html(swfcreate_justintv_live('sbe', sb_vid, sbw, sbh));
+			break;
+		case URLTYPE['QIKL']:
+			$('#sb').html(swfcreate_qik_live('sbe', sb_vid, sbw, sbh));
+			break;
+		case URLTYPE['USTREAML']:
+			$('#sb').html(swfcreate_ustream_live_sb('sbe', sb_vid, sbw, sbh));
+			break;
+	}
+	if (f_sbshow)
+		$('#sbbutton').attr('src', sb_img_onminus);
+	else
+		$('#sbbutton').attr('src', sb_img_onplus);
+	f_sbon = true;
+}
+
+function sb_open(alias, url, urltype, vid) {
+	sb_alias = alias;
+	sb_url = url;
+	sb_urltype = urltype;
+	sb_vid = vid;
+
+	switch (urltype) {
+		case URLTYPE['JUSTINTVL']:
+			$('#sb').html(swfcreate_justintv_live('sbe', vid, sbw, sbh));
+			break;
+		case URLTYPE['QIKL']:
+			$('#sb').html(swfcreate_qik_live('sbe', vid, sbw, sbh));
+			break;
+		case URLTYPE['USTREAML']:
+			$('#sb').html(swfcreate_ustream_live_sb('sbe', vid, sbw, sbh));
+			break;
+	}
+	if (f_sbshow)
+		$('#sbbutton').attr('src', sb_img_onminus);
+	else
+		$('#sbbutton').attr('src', sb_img_onplus);
+	f_sbon = true;
+}
+
+function sb_reload() {
+	if (f_sbon == false)
+		return;
+	switch (sb_urltype) {
+		case URLTYPE['JUSTINTVL']:
+			$('#sb').html(swfcreate_justintv_live('sbe', sb_vid, sbw, sbh));
+			break;
+		case URLTYPE['QIKL']:
+			$('#sb').html(swfcreate_qik_live('sbe', sb_vid, sbw, sbh));
+			break;
+		case URLTYPE['USTREAML']:
+			$('#sb').html(swfcreate_ustream_live_sb('sbe', sb_vid, sbw, sbh));
+			break;
+	}
+	f_sbon = true;
+}
+
+function sb_hide() {
+	if (f_sbshow == false)
+		return;
+ 	$('#sb').animate({"left": (mleft + (tw * 3) - sbw) + "px", "top": (mtop + (th * 3) - sbh) + "px"}, "fast");
+	$('#sb').css("visibility", "hidden");
+	f_sbshow = false;
+}
+
+function sb_show() {
+	if (f_sbshow == true)
+		return;
+	$('#sb').css("visibility", "visible");
+	$('#sb').animate({"left": (mleft + (tw * 3) - sbw) + "px", "top": (mtop + (th * 3) + 5) + "px"}, "fast");
+	f_sbshow = true;
+}
+
+
+
+
+
+function get_currentsec() {
+	var d = new Date();
+	return d.getSeconds();
+}
+
+function get_timestring(timeoffset) {
+	var d = new Date();
+	d.setTime(d.getTime() + ((d.getTimezoneOffset() - timeoffset) * 60000));
+	h = d.getHours();
+	if (h < 10)
+		h = '0' + h;
+	m = d.getMinutes();
+	if (m < 10)
+		m = '0' + m;
+	return h + ":" + m;
+}
+
+function update_tile_timeoffset() {
+	for (i = 0; i < tilemode; i++) {
+		if (tileinfo[i]['cid'] > 0 && tileinfo[i]['timeoffset'] != -1440) {
+			$('#tt' + tile[i]).html(get_timestring(tileinfo[i]['timeoffset']));
+		}
+	}
+}
+
+function timeoffset_timerloop() {
+	update_tile_timeoffset();
+	tile_update_timer = setTimeout("timeoffset_timerloop()", (60 - get_currentsec()) * 1000);
+}
+
+
+// var f_sidepanel = false;
+//
+// function debug_clear() {
+// 	$('#sidepanel').html('');
+// }
+//
+// function debug_toggle() {
+// 	if (f_sidepanel == false) {
+// 		$('#sidepanel').css("width", "475px").css("height", "700px");
+// 		$('#sidepanel').css("visibility", "visible");
+// 		f_sidepanel = true;
+// 	} else {
+// 		$('#sidepanel').css("width", "0px").css("height", "0px");
+// 		$('#sidepanel').css("visibility", "hidden");
+// 		f_sidepanel = false;
+// 	}
+// }
+//
+// function debug_append(s) {
+// 	$('#sidepanel').append('<div>' + now() + " - " + s + '</div>');
+// }
+//
+// function now() {
+// 	d = new Date();
+// 	h = d.getHours();
+// 	m = d.getMinutes();
+// 	s = d.getSeconds();
+// 	out = '';
+// 	out = (h < 10) ? '0' + h : h.toString();
+// 	out += ':';
+// 	out += (m < 10) ? '0' + m : m.toString();
+// 	out += ':';
+// 	out += (s < 10) ? '0' + s : s.toString();
+// 	return out;
+// }
+//
+// function debug_window(s) {
+// 	debug_append("w = " + $(window).width() + ", h = " + $(window).height());
+// }
+
+
+$(document).ready(function(){
+	$(document).bind('keydown', '1', function() { cmd_toggle(0); return false; });
+	$(document).bind('keydown', '2', function() { cmd_toggle(1); return false; });
+	$(document).bind('keydown', '3', function() { cmd_toggle(2); return false; });
+	$(document).bind('keydown', '4', function() { cmd_toggle(3); return false; });
+	$(document).bind('keydown', '5', function() { cmd_toggle(4); return false; });
+	$(document).bind('keydown', '6', function() { cmd_toggle(5); return false; });
+	$(document).bind('keydown', '7', function() { cmd_toggle(6); return false; });
+	$(document).bind('keydown', '8', function() { cmd_toggle(7); return false; });
+	$(document).bind('keydown', '9', function() { cmd_toggle(8); return false; });
+
+	$(document).bind('keydown', 'shift+1', function() { cmd_reload(0); return false; });
+	$(document).bind('keydown', 'shift+2', function() { cmd_reload(1); return false; });
+	$(document).bind('keydown', 'shift+3', function() { cmd_reload(2); return false; });
+	$(document).bind('keydown', 'shift+4', function() { cmd_reload(3); return false; });
+	$(document).bind('keydown', 'shift+5', function() { cmd_reload(4); return false; });
+	$(document).bind('keydown', 'shift+6', function() { cmd_reload(5); return false; });
+	$(document).bind('keydown', 'shift+7', function() { cmd_reload(6); return false; });
+	$(document).bind('keydown', 'shift+8', function() { cmd_reload(7); return false; });
+	$(document).bind('keydown', 'shift+9', function() { cmd_reload(8); return false; });
+
+	$(document).bind('keydown', 'shift+0', function() { sb_reload(); return false; });
+
+// 	$(document).bind('keydown', 'ctrl+1', function() { debug_append('control + 1 keypress detected'); return false; });
+// 	$(document).bind('keydown', '+', function() { debug_append('+ keypress detected'); return false; });
+// 	$(document).bind('keydown', '-', function() { debug_append('- keypress detected'); return false; });
+// 	$(document).bind('keydown', 'ctrl+q', function() { debug_append('ctrl + q keypress detected'); return false; });
+// 	$(document).bind('keydown', 'ctrl+a', function() { debug_append('ctrl + a keypress detected'); return false; });
+//
+//         $(document).bind('keydown', 'shift+d', function() { debug_toggle(); return false; });
+//         $(document).bind('keydown', 'shift+c', function() { debug_clear(); return false; });
+//         $(document).bind('keydown', 'shift+w', function() { debug_window(); return false; });
+
+
+
+
+
+	tile_update_timer = setTimeout("timeoffset_timerloop()", (60 - get_currentsec()) * 1000);
+/*		minTimeout: 1500 + Math.floor(Math.random() * 100),
+		maxTimeout: 2000 + Math.floor(Math.random() * 300),*/
+
+
+	$.PeriodicalUpdater('pull', {
+		method: 'GET',
+		cache: false,
+		data: function() { return {id: clientid, lastcid: lastcid, p: pollcount++, h: $(window).height(), w: $(window).width() }; },
+		type: 'xml',
+		minTimeout: 1500,
+		maxTimeout: 2000,
+		multiplier: 1.05
+	},
+	function(xml) {
+		$(xml).find('cmd').each(function()
+		{
+			cid = parseInt($(this).find('cid').text());
+			if (cid != 0)
+				lastcid = cid
+
+			switch (parseInt($(this).find('type').text()))
+			{
+				case CMD['NULL']:  // null command
+					basecid = cid;
+					basecid_local = get_local_cid();
+					break;
+				case CMD['CLOSE']:
+					cmd_close(parseInt($(this).find('ti1').text()));
+					break;
+				case CMD['CLOSEALL']:
+					cmd_closeall();
+					break;
+				case CMD['HIDEALL']:
+					cmd_hideall();
+					break;
+				case CMD['MAXIMIZE']:
+					cmd_maximize(parseInt($(this).find('ti1').text()));
+					break;
+				case CMD['MINIMIZE']:
+					cmd_minimize();
+					break;
+				case CMD['MODE']:
+					cmd_mode(parseInt($(this).find('mode').text()));
+					break;
+				case CMD['MOVE']:
+					cmd_move(parseInt($(this).find('ti1').text()), parseInt($(this).find('ti2').text()));
+					break;
+				case CMD['OPEN']:
+					ti = parseInt($(this).find('ti1').text());
+					alias = $(this).find('alias').text();
+					ccode = $(this).find('ccode').text();
+					imgurl = $(this).find('imgurl').text();
+					param = $(this).find('param').text();
+					stime = parseInt($(this).find('stime').text());
+					timeoffset = parseInt($(this).find('timeoffset').text());
+					if (isNaN(timeoffset))
+						timeoffset = -1440;
+					title = $(this).find('title').text();
+					url = $(this).find('url').text();
+					urltype = parseInt($(this).find('urltype').text());
+					vid = $(this).find('vid').text();
+					if (noautoplay == true)
+						cmd_open_noautoplay(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid);
+					else
+						cmd_open(ti, alias, ccode, cid, imgurl, param, stime, timeoffset, title, url, urltype, vid);
+					break;
+				case CMD['REFRESHPAGE']:
+					cmd_refreshpage();
+					break;
+				case CMD['RELOAD']:
+					cmd_reload(parseInt($(this).find('ti1').text()));
+					break;
+				case CMD['RELOADALL']:
+					cmd_reloadall();
+					break;
+				case CMD['SBOFF']:
+					if (nosb)
+						break;
+					sb_off();
+					break;
+				case CMD['SBON']:
+					if (nosb)
+						break;
+					sb_on();
+					break;
+				case CMD['SBOPEN']:
+					if (nosb)
+						break;
+					sb_open($(this).find('alias').text(), $(this).find('url').text(), parseInt($(this).find('urltype').text()), $(this).find('vid').text());
+					break;
+				case CMD['SBRELOAD']:
+					if (nosb)
+						break;
+					sb_reload();
+					break;
+				case CMD['SHOWALL']:
+					cmd_showall();
+					break;
+				case CMD['SWAP']:
+					cmd_swap(parseInt($(this).find('ti1').text()), parseInt($(this).find('ti2').text()));
+					break;
+				default:
+					break;
+			}
+		});
+	});
+});
+
+		</script>
+	</head>
+	<body>
+
+		<div id="t0" class="tile"><div id="tn0" class="tile-number"></div><div id="th0" class="tile-header"></div><div id="tt0" class="tile-time"></div><div id="tf0" class="tile-flag"></div><div id="tv0" class="tile-view"></div></div>
+		<div id="t1" class="tile"><div id="tn1" class="tile-number"></div><div id="th1" class="tile-header"></div><div id="tt1" class="tile-time"></div><div id="tf1" class="tile-flag"></div><div id="tv1" class="tile-view"></div></div>
+		<div id="t2" class="tile"><div id="tn2" class="tile-number"></div><div id="th2" class="tile-header"></div><div id="tt2" class="tile-time"></div><div id="tf2" class="tile-flag"></div><div id="tv2" class="tile-view"></div></div>
+		<div id="t3" class="tile"><div id="tn3" class="tile-number"></div><div id="th3" class="tile-header"></div><div id="tt3" class="tile-time"></div><div id="tf3" class="tile-flag"></div><div id="tv3" class="tile-view"></div></div>
+		<div id="t4" class="tile"><div id="tn4" class="tile-number"></div><div id="th4" class="tile-header"></div><div id="tt4" class="tile-time"></div><div id="tf4" class="tile-flag"></div><div id="tv4" class="tile-view"></div></div>
+		<div id="t5" class="tile"><div id="tn5" class="tile-number"></div><div id="th5" class="tile-header"></div><div id="tt5" class="tile-time"></div><div id="tf5" class="tile-flag"></div><div id="tv5" class="tile-view"></div></div>
+		<div id="t6" class="tile"><div id="tn6" class="tile-number"></div><div id="th6" class="tile-header"></div><div id="tt6" class="tile-time"></div><div id="tf6" class="tile-flag"></div><div id="tv6" class="tile-view"></div></div>
+		<div id="t7" class="tile"><div id="tn7" class="tile-number"></div><div id="th7" class="tile-header"></div><div id="tt7" class="tile-time"></div><div id="tf7" class="tile-flag"></div><div id="tv7" class="tile-view"></div></div>
+		<div id="t8" class="tile"><div id="tn8" class="tile-number"></div><div id="th8" class="tile-header"></div><div id="tt8" class="tile-time"></div><div id="tf8" class="tile-flag"></div><div id="tv8" class="tile-view"></div></div>
+
+		<img id="sbbutton" src="" alt="" width="24" height="24" />
+		<div id="sb"></div>
+
+		<!--  <div id="sidepanel"><div> -->
+
+	</body>
+</html>
