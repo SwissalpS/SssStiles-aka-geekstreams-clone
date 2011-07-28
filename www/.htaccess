@@ -1,0 +1,12 @@
+RewriteEngine on
+
+RewriteRule ^/?cpanel$ "http\:\/\/domain\.tld\:2082" [R=301,L]
+
+RewriteRule ^/?aliaslist\.php.* - [L]
+RewriteRule ^/?pu(sh|ll)\.php.* - [L]
+# for getting aliaslist
+RewriteRule ^/?aliaslist$ /aliaslist.php/$1 [L]
+# for ajax calls
+RewriteRule ^/?pull(.*)$ /pull.php/$1 [L]
+# for setting stuff
+RewriteRule ^/?push(.*)$ /push.php/$1 [L]

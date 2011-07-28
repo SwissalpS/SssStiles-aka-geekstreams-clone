@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /img/
+Disallow: /flag/
+Disallow: /js/
+Disallow: /cgi-bin/
