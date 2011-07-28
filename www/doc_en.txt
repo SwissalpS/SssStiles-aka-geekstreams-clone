@@ -1,0 +1,214 @@
+=========================
+Geekstreams Documentation
+=========================
+
+
+GeekStreams is a simple web app that allows any chatters, in freenode irc channel
+#fmcg, to control via commands to the channel.
+
+
+Tile Numbers
+------------
+
+	Mode 4				Mode 6				Mode 9
++-----------+		+-------+---+		+---+---+---+
+|           |		|       | 2 |		| 1 | 2 | 3 |
++     1     |		+   1   +---+		+---+---+---+
+|           |		|       | 3 |		| 4 | 5 | 6 |
++---+---+---+		+---+---+---+		+---+---+---+
+| 2 | 3 | 4 |		| 4 | 5 | 6 |		| 7 | 8 | 9 |
++---+---+---+		+---+---+---+		+---+---+---+
+
+
+
+Page Keys
+---------
+1 - 9			Hitting the tile number key will toggle the tile.
+
+shift + 1 - shift + 9	Hitting the shift + tile number will reload the tile.
+
+shift + 0		Hitting shift + 0 will reload the speech bot.
+
+
+
+IRC bot Commands
+----------------
+
+.mode [4|6|9]
+	Select the tile modes.  This command without any parameter will show current
+	tile mode.
+
+.open [tilenumber] <alias|url>
+.o [tilenumber] <alias|url>
+	Populate a tile with an embedded video.  Tile number parameter is optional and if
+	omitted the video will be populated in the next available tile from the top.
+	ex.
+		.open 5 http://www.ustream.tv/spacevidcast
+			Open the live ustream video in a center tile
+
+		.open badfish
+			Open badfish's live ustream video at next available tile.
+			You have to have created an alias for badfish prior.
+
+		.open 9 http://www.youtube.com/watch?v=dQw4w9WgXcQ
+			Open a YouTube video in the bottom right corner tile.
+
+.close <tilenumber|alias>
+.c <tilenumber|alias>
+	Close a tile
+
+.closeall
+	Close all tiles
+
+.move <origintilenumber> <targettilenumber>
+.m <origintilenumber> <targettilenumber>
+	Move the video from one position to another
+
+.list
+	List the current state of tiles
+
+.l
+	SwissalpSbot only: same as .list
+
+.info <tilenumber|alias>
+	Retrieve information about a specific tile
+	you can see a list of aliases on http://geekstreams.appspot.com/aliaslist
+	use of alias only on SwissalpSbot
+
+.refreshpage
+	Force the entere page to reload
+
+.rp
+	SwissalpSbot only: same as .refreshpage
+
+.reload <tilenumber|alias>
+	Reload a tile
+
+.r <tilenumber|alias>
+	SwissalpSbot only: same as .reload
+
+.reloadall
+	Reload all tiles
+
+.ra
+	SwissalpSbot only: same as .reloadall
+
+.swap <tilenumber> <tilenumber>
+.s <tilenumber> <tilenumber>
+	Swap locations of two tiles
+
+.switch <tilenumber> <tilenumber>
+	SwissalpSbot only: same as .swap
+
+.alias set <alias> <url>
+	Set an alias for a url.
+	ex.
+		.alias set badfish http://www.ustream.tv/channel/badfish-s
+			Sets badfish's alias so that you can easily open the url
+			with just .open badfish.
+
+.alias setmeta <alias> <type> <value>
+	Sets extra metadata for an alias.  Types of metadata are ccode, param,
+	and timeoffset.
+	ex.
+		.alias setmeta geekjoan ccode se
+			Sets geekjoan's country code to se which is Sweden.  List of
+			country code is here: http://www.iso.org/iso/list-en1-semic-3.txt
+
+		.alias setmeta electricguy timeoffset -120
+			Set electricguy's time zone to GMT+2
+
+		.alias setmeta jeri param style=ubCC2550:lcE87A9F:ocffffff:ucffffff
+			Set jeri's ustream embed to pink
+
+	Other attributes: imgurl, stime, tittle and vid.
+
+	You must close and reopen the tile to make tile attribute changes to take effect.
+
+.alias clear <alias>
+	Clear the assigned alias
+
+.max <tilenumber|alias>
+	Go Fullscreen with tile. If alias is not open, ignore.
+
+.maximise <Kachelnummer|Alias>
+	SwissalpSbot only: same as .max
+
+.min
+	If a video is playing fullscreen, it will be normalised.
+
+.minimise
+	SwissalpSbot only: same as .min
+
+
+Speechbot commands when speechbot stream is online
+http://www.ustream.tv/channel/speechbot
+(implemented but not supported by SwissalpSbot)
+--------------------------------------------------
+
+.sb on
+	Turn on the speechbot
+
+.sb off
+	Turn off the speechbot
+
+.sb reload
+	Reload speechbot
+
+.sb set <alias>
+	Assign the speechbot with an alias of a url
+
+.sb status
+	Shows current state of speechbot
+
+
+List of Supported Video Sources
+-------------------------------
+
+Atom Films
+Bing
+Current
+Dailymotion
+FORA.tv
+Funny or Die
+Google Video
+Justin.tv (live)
+Justin.tv (recorded)
+Liveleak
+Metacafe
+MIT OCW
+MySpace Video
+Qik (live)
+Qik (recorded)
+Revision3
+Revver
+Ustream (live)
+Ustream (recorded)
+Viddler
+Vimeo
+YouTube (live)
+YouTube (recorded)
+
+
+Page Parameters
+---------------
+
+You can launch GeekStreams using query string parameter to enable or disable certain features.
+
+http://geekstreams.appspot.com/?p=noautoplay
+
+	Autoplay disabled mode.  If you're on a computer with limited resource, you can disable
+	autoplay to have manual control over which tile plays video streams.
+
+http://geekstreams.appspot.com/?p=nosb
+
+	Speechbot diabled mode.	  You will not see a hidden speechbot tile and it's as if this
+	feature doesn't exist.
+
+* You can combine both parameters like this:  http://geekstreams.appspot.com/?p=noautoplay+nosb
+
+
+---
+
+I would like to thank everyone who has contributed to this project.  Without their comments,
+feedbacks, criticism, and support, GeekStreams would not be possible.
