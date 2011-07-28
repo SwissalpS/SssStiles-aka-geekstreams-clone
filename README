@@ -1,0 +1,17 @@
+Enabling IRC users to share a viewing experience.
+
+Most of this code is cloned from geekstreams.appspot.com, at least the code
+anyone can fetch with a browser.
+
+The idea was conceived, as far as I know, in the #fmcg channel on freenode.net
+So by definition it is a collaborative creation.
+
+Users of the channel can enter commands to change the layout and contents of
+the webpage.
+
+This package deals with the server-side.
+
+For client-side see my proof of concept gist https://gist.github.com/1097242
+
+For now the server-side is using plist files just to prove how the system is to
+work. For production I recommend using a database such as mySQL.
