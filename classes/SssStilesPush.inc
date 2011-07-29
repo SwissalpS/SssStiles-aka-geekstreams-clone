@@ -100,7 +100,7 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 		$this->aRequest['m'] = isset($_REQUEST['m']) ? abs(intVal($_REQUEST['m'])) : null;
 
 		// numerical value 1
-		$this->aRequest['ti1'] = isset($_REQUEST['ti1']) ? abs(intVal($_REQUEST['ti1'])) : 0;
+		$this->aRequest['ti1'] = isset($_REQUEST['ti1']) ? intVal($_REQUEST['ti1']) : -1;
 
 		// numerical value 2
 		$this->aRequest['ti2'] = isset($_REQUEST['ti2']) ? abs(intVal($_REQUEST['ti2'])) : 0;
@@ -166,7 +166,7 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 
 				if (!$oAlias) $this->respond404('unknown alias');
 
-				switch(strToLower($this->Request['a2'])) {
+				switch(strToLower($this->aRequest['a2'])) {
 
 					case 'ccode' :
 
@@ -307,6 +307,15 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 
 		} // if got alias
 
+		// find first open tile
+		if (0 > $iArg1) {
+
+			$iArg1 = SssStilesCurrent::firstOpenTile();
+
+			if (null === $iArg1) return $this;
+
+		} // if negative find first available tile to close
+
 		$oClose = new SssStilesEvent();
 
 		$oClose->setParam('type', SssStilesCmd_CLOSE);
@@ -381,6 +390,14 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 
 			$oEvent = null;
 
+			if (0 > $iArg1) {
+
+				$iArg1 = SssStilesCurrent::firstOpenTile();
+
+				if (null === $iArg1) return $this;
+
+			} // if negative arg1 -> find first Open tile
+
 			$aCurrent = SssStilesCurrent::getCurrentArray();
 
 			$sKey = 't' . $iArg1;
@@ -435,7 +452,13 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 
 			} // loop each current event
 
-		} // if got alias
+		} elseif (0 > $iArg1) {
+
+			$iArg1 = SssStilesCurrent::firstOpenTile();
+
+			if (null === $iArg1) return $this;
+
+		} // if got alias or iArg1 is negative
 
 		$oEvent = new SssStilesEvent();
 
@@ -527,6 +550,14 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 
 		$iArg1 = $this->aRequest['ti1'];
 		$sArg = $this->aRequest['a']; // either alias or url
+
+		if (0 > $iArg1) {
+
+			$iArg1 = SssStilesCurrent::firstFreeTile();
+
+			if (null === $iArg1) $this->respond404('no free tiles');
+
+		} // if tile not given
 
 		$oAlias = SssStilesServer::eventForAlias($sArg);
 
@@ -622,6 +653,14 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 			} // loop each current event
 
 		} // if got alias
+
+		if (0 > $iArg1) {
+
+			$iArg1 = SssStilesCurrent::firstOpenTile();
+
+			if (null === $iArg1) return $this;
+
+		} // if tile not given
 
 		$oEvent = new SssStilesEvent();
 
@@ -753,7 +792,7 @@ WFLog::logToFile('SssStilesPush.log', print_r($_REQUEST, true));
 		$iArg1 = $this->aRequest['ti1'];
 		$iArg2 = $this->aRequest['ti2'];
 
-		if ($iArg1 === $iArg2) {
+		if ($iArg1 === $iArg2 || 0 > $iArg1) {
 
 			$this->respond404('syntax error');
 

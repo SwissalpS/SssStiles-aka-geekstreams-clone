@@ -22,6 +22,50 @@ class SssStilesCurrent {
 	} // __construct
 
 
+	static function firstFreeTile() {
+
+		$oModeEvent = new SssStilesEvent(0);
+		$iMax = $oModeEvent->getParam('mode');
+
+		$aCurrent = self::sharedCurrent()->peekArray();
+
+		for ($i = 0; $i < $iMax; $i++) {
+
+			if (!isset($aCurrent['t' . $i])) {
+
+				return $i;
+
+			} // if found next open tile (mybe not from this mode..who cares)
+
+		} // loop each possible tile
+
+		return null;
+
+	} // firstFreeTile
+
+
+	static function firstOpenTile() {
+
+		$oModeEvent = new SssStilesEvent(0);
+		$iMax = $oModeEvent->getParam('mode');
+
+		$aCurrent = self::sharedCurrent()->peekArray();
+
+		for ($i = 0; $i < $iMax; $i++) {
+
+			if (isset($aCurrent['t' . $i])) {
+
+				return $i;
+
+			} // if found next open tile (mybe not from this mode..who cares)
+
+		} // loop each possible tile
+
+		return null;
+
+	} // firstFreeTile
+
+
 	function peekArray() {
 
 		return $this->oP->__toPlistArray();
